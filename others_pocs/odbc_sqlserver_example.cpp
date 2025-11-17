@@ -59,16 +59,16 @@ int main() {
 /*
     string connString = 
         "Driver={ODBC Driver 18 for SQL Server};"
-        "Server=192.168.15.142;" // Ex: 192.168.1.10,1433
-        "Database=dbtotvsvmtests;"
-        "Uid=totvsvmtests;"
-        "Pwd=totvs@123456;"
+        "Server=192.168.12.123;" 
+        "Database=dbtest;"
+        "Uid=username;"
+        "Pwd=password;"
         "TrustServerCertificate=yes;";
 */
     // Se voc� tivesse um DSN chamado "MyDSN"
     // Esta string seria suficiente se o MyDSN j� tivesse todas as informa��es
     // (Driver, Server, Database, TrustServerCertificate, Uid, Pwd)
-    string connString = "DSN=utlogix_sql;Uid=totvsvmtests;Pwd=totvs@123456;"; 
+    string connString = "DSN=xxxxx;Uid=xxxxx;Pwd=xxxxxx;"; 
 
     // O restante do SQLDriverConnect permaneceria o mesmo, mas usando SQL_DRIVER_NOPROMPT
 

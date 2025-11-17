@@ -19,13 +19,13 @@ SQLHDBC dbc = SQL_NULL_HDBC;
 SQLHSTMT stmt = SQL_NULL_HSTMT; 
 
 // Nome do DSN (Solicitado)
-const char* DSN_NAME = "utlogix_sql"; 
+const char* DSN_NAME = "xxxxxx"; 
 // Nome da tabela e esquema
-const char* TABLE_NAME = "abelaTeste"; 
+const char* TABLE_NAME = "tabelaTeste"; 
 
 // --- Variáveis de Credenciais (A serem substituídas) ---
-const char* DB_USER = "totvsvmtests";
-const char* DB_PWD = "totvs@123456";
+const char* DB_USER = "xxxxx";
+const char* DB_PWD = "xxxxx";
 // -------------------------------------------------------
 
 // Função auxiliar para verificar e exibir erros ODBC
@@ -74,7 +74,7 @@ int main() {
     SQLRETURN ret;
     string sql;
 
-    // --- VARIÁVEIS MOVIDAS PARA O TOPO ---
+    // --- VARIÝVEIS MOVIDAS PARA O TOPO ---
     SQLINTEGER id;
     SQLCHAR nome[51];
     SQLCHAR valorStr[51];

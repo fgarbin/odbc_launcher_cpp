@@ -66,7 +66,7 @@ int main() {
     string connString;
     string sql;
 
-    // --- VARIÁVEIS MOVIDAS PARA O TOPO (CORREÇÃO DO ERRO GOTO) ---
+    // --- VARIÝVEIS MOVIDAS PARA O TOPO (CORREÇÃO DO ERRO GOTO) ---
     SQLCHAR outString[1024];
     SQLSMALLINT outStringLen;
     
@@ -83,16 +83,16 @@ int main() {
 /*
     string connString = 
         "Driver={ODBC Driver 18 for SQL Server};"
-        "Server=192.168.15.142;" // Ex: 192.168.1.10,1433
-        "Database=dbtotvsvmtests;"
-        "Uid=totvsvmtests;"
-        "Pwd=totvs@123456;"
+        "Server=192.198.23.141;" 
+        "Database=dbtest;"
+        "Uid=username;"
+        "Pwd=password;"
         "TrustServerCertificate=yes;";
 */
     // Se voc� tivesse um DSN chamado "MyDSN"
     // Esta string seria suficiente se o MyDSN j� tivesse todas as informa��es
     // (Driver, Server, Database, TrustServerCertificate, Uid, Pwd)
-   connString = "DSN=utlogix_sql;Uid=totvsvmtests;Pwd=totvs@123456;"; 
+   connString = "DSN=xxxx;Uid=xxxx;Pwd=xxxxx;"; 
 
     // 1. Inicializa o ambiente ODBC
     ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env);
