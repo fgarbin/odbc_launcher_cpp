@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 1. Verifica se a vari·vel N√O est· vazia/indefinida (-n)  
+# 1. Verifica se a vari√°vel N√ÉO est√° vazia/indefinida (-n)  
 if [[ -n "$USE_DBSRV" ]] && [[ "$USE_DBSRV" == "1" ]]; then
     unset WITH_DBINTERFACE  
     PARM_DBSRV=-DUSE_DBSRV
@@ -10,9 +10,9 @@ else
     echo "*** Building using DBINTERFACE"
 fi
 
-# 1. Verifica se a vari·vel N√O est· vazia/indefinida (-n)
+# 1. Verifica se a vari√°vel N√ÉO est√° vazia/indefinida (-n)
 if [[ -n "$USE_OPENSSL" ]]; then    
-    # 2. Se for definida, verifica se È 1 OU 3
+    # 2. Se for definida, verifica se √© 1 OU 3
     if [[ "$USE_OPENSSL" == "1" ]]
     then 
         echo "*** Building using OPENSSL 1"
@@ -25,7 +25,7 @@ if [[ -n "$USE_OPENSSL" ]]; then
 
     if [[ -n "$OPENSSL_ROOT" ]]; then
       export OPENSSL_INC="${OPENSSL_ROOT}/include"
-      export OPENSSL_LIB="${OPENSSL_ROOT}/release" 
+      export OPENSSL_LIB="${OPENSSL_ROOT}/lib" 
 
       echo "*** Using OPENSSL_ROOT: ${OPENSSL_ROOT}"
       echo "*** Using OPENSSL_INC:  ${OPENSSL_INC}"
