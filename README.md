@@ -23,7 +23,11 @@ The project focuses on leveraging the Microsoft ODBC Driver 18 (msodbcsql18) and
 
 To build this POC this packages must be installed on system:
 
-- unixODBC-devel
+- Debian, Ubuntu and derivatives:
+  - unixodbc-dev
+
+- RedHat, Fedora and derivatives:
+  - unixODBC-devel
 
 ### Environment variables
 
