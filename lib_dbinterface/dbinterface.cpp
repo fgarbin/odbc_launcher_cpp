@@ -114,13 +114,24 @@ void HandleDiagnosticRecord (SQLHANDLE handle, SQLSMALLINT type, const char* fun
     SQLSMALLINT length;
     SQLRETURN ret;
 
-    cerr << "--- Erro em " << functionName << " ---" << endl;
+    std::string err = "";
+
+    err = "Erro on ";
+    err += functionName;
+
+    DBINTERFACE_ERR(err.c_str());
+    err = "";
     while ((ret = _SQLGetDiagRec(type, handle, i, state, &nativeError, text, sizeof(text), &length)) == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) {
-        cerr << "SQL State: " << state << endl;
-        cerr << "Erro Nativo: " << nativeError << endl;
-        cerr << "Mensagem: " << text << endl;
+        err += "SQL State: ";
+        err += (const char*)state;
+        err += " Native Error: ";
+        err += std::to_string(nativeError);
+        err += " Message: ";
+        err += (const char*)text;
+        err += '\n';
         i++;
     }
+    DBINTERFACE_ERR(err.c_str());
 }
 
 /**
@@ -150,21 +161,25 @@ bool load_odbc_symbols()
         std::cerr << "[ERRO] Falha ao mapear SQLAllocHandle: " << dlerror() << "\n";
         return false;
     }
-    std::cout << "[INFO] SQLAllocHandle mapeado.\n";
+    DBINTERFACE_MSG("SQLAllocHandle mapped.");
     
     _SQLSetEnvAttr = (SQLSetEnvAttrFunc)dlsym(odbc_handle, "SQLSetEnvAttr");
     if (!_SQLSetEnvAttr) {
-        std::cerr << "[ERRO] Falha ao mapear SQLSetEnvAttr: " << dlerror() << "\n";
+        std::string err = "Fail to map SQLSetEnvAttr: "; 
+        err.append(dlerror()); 
+        DBINTERFACE_ERR(err.c_str());
         return false;
     }
-    std::cout << "[INFO] SQLSetEnvAttr mapeado.\n";
+    DBINTERFACE_MSG("SQLSetEnvAttr mapped.");
 
     _SQLSetConnectAttr = (SQLSetConnectAttrFunc)dlsym(odbc_handle, "SQLSetConnectAttr");
     if (!_SQLSetConnectAttr) {
-        std::cerr << "[ERRO] Falha ao mapear SQLSetConnectAttr: " << dlerror() << "\n";
+        std::string err = "Fail to map SQLSetConnectAttr: "; 
+        err.append(dlerror()); 
+        DBINTERFACE_ERR(err.c_str());
         return false;
     }
-    std::cout << "[INFO] SQLSetConnectAttr mapeado.\n";
+    DBINTERFACE_MSG("SQLSetConnectAttr mapped.");
     
     // --- Mapeamento das Funções Anteriores ---
 
@@ -172,33 +187,42 @@ bool load_odbc_symbols()
     _SQLDisconnect = (SQLDisconnectFunc)dlsym(odbc_handle, "SQLDisconnect");
     
     if (!_SQLConnect || !_SQLDisconnect) {
-        std::cerr << "[ERRO] Falha ao mapear SQLConnect/SQLDisconnect.\n";
+        std::string err = "Fail to map SQLConnect/SQLDisconnect: "; 
+        err.append(dlerror()); 
+        DBINTERFACE_ERR(err.c_str());
         return false;
     }
-    std::cout << "[INFO] SQLConnect e SQLDisconnect mapeados.\n";
+    DBINTERFACE_MSG("SQLConnect and SQLDisconnect mapped.");
 
     _SQLFreeHandle = (SQLFreeHandleFunc)dlsym(odbc_handle, "SQLFreeHandle");
     if (!_SQLFreeHandle) {
-        std::cerr << "[ERRO] Falha ao mapear SQLFreeHandle: " << dlerror() << "\n";
+        std::string err = "Fail to map SQLFreeHandle: "; 
+        err.append(dlerror()); 
+        DBINTERFACE_ERR(err.c_str());
         return false;
     }
-    std::cout << "[INFO] SQLFreeHandle mapeado.\n";  
+    DBINTERFACE_MSG("SQLFreeHandle mapped.");
     
     _SQLGetDiagRec = (SQLGetDiagRecFunc)dlsym(odbc_handle, "SQLGetDiagRec");
     if (!_SQLGetDiagRec) {
-        std::cerr << "[ERRO] Falha ao mapear SQLGetDiagRec: " << dlerror() << "\n";
+        std::string err = "Fail to map SQLGetDiagRec: "; 
+        err.append(dlerror()); 
+        DBINTERFACE_ERR(err.c_str());
         return false;
     }
-    std::cout << "[INFO] SQLGetDiagRec mapeado.\n";    
+    DBINTERFACE_MSG("SQLGetDiagRec mapped.");
 
     _SQLGetInfo = (SQLGetInfoFunc)dlsym(odbc_handle, "SQLGetInfo");
     if (!_SQLGetInfo) {
-        std::cerr << "[ERRO] Falha ao mapear SQLGetInfo: " << dlerror() << "\n";
+        std::string err = "Fail to map SQLGetInfo: "; 
+        err.append(dlerror()); 
+        DBINTERFACE_ERR(err.c_str());
         return false;
     }
-    std::cout << "[INFO] SQLGetInfo mapeado.\n";    
-
-  std::cout << "[DBINTERFACE INFO] libodbc.so carregada e funcoes mapeadas com sucesso.\n";
+    DBINTERFACE_MSG("SQLGetInfo mapped.");
+  
+  
+  DBINTERFACE_MSG("libodbc.so loaded and functions mapped successfully.");
   return true;
 }
 
@@ -220,6 +244,8 @@ int db_connect(const char *DSN_NAME, const char *username, const char *password 
   SQLCHAR driverName[256];
   SQLSMALLINT actualLength = 0;    
 
+  std::string msg = ""; 
+
   if (!load_odbc_symbols()) {
     std::cerr << "[DBINTERFACE] Não é possível conectar, falha ao carregar a biblioteca ODBC.\n";
     return 1;
@@ -237,7 +263,10 @@ int db_connect(const char *DSN_NAME, const char *username, const char *password 
   }
 
   // 3. CONECTA USANDO SQLConnect E DSN
-  cout << "Tentando conectar ao DSN '" << DSN_NAME << "' com SQLConnect..." << endl;
+  msg.append("Trying to connect in DSN '");
+  msg.append(DSN_NAME);
+  msg.append("' using SQLConnect...");
+  DBINTERFACE_MSG(msg.c_str());
   ret = _SQLConnect(dbc, (SQLCHAR*)DSN_NAME, SQL_NTS, 
                     (SQLCHAR*)username, SQL_NTS, 
                     (SQLCHAR*)password, SQL_NTS);
@@ -247,9 +276,10 @@ int db_connect(const char *DSN_NAME, const char *username, const char *password 
       errorCode = 2;
       goto cleanup;
   }
-  cout << "ConexÃ£o estabelecida com sucesso usando DSN!" << endl;
+
+  DBINTERFACE_MSG("Connection established successfully!");
  
-  std::cout << "\n--- Buscando Informações do Driver ---\n";
+  DBINTERFACE_MSG("Getting drive information...");
 
   // Chamando SQLGetInfo para obter o nome do driver
   ret = _SQLGetInfo(
@@ -261,10 +291,16 @@ int db_connect(const char *DSN_NAME, const char *username, const char *password 
   );
 
   if (ret == SQL_SUCCESS) {
-      printf("SQLGetInfo(SQL_DRIVER_NAME) Retorno: %d\n",ret);
+      msg = "SQLGetInfo(SQL_DRIVER_NAME) Return: ";
+      msg += std::to_string(ret);
+      DBINTERFACE_MSG(msg.c_str());
+
       // Assegura que a string seja terminada corretamente para impressão
       driverName[actualLength] = '\0';
-      std::cout << "Nome do Driver: " << (const char*)driverName << "\n";
+
+      msg = "SQLGetInfo(SQL_DRIVER_NAME) Return: ";
+      msg += (const char*)driverName;
+      DBINTERFACE_MSG(msg.c_str());
   } else {
       HandleDiagnosticRecord(dbc, SQL_HANDLE_DBC, "SQLGetInfo");
       errorCode = 2;
@@ -288,7 +324,7 @@ int db_connect(const char *DSN_NAME, const char *username, const char *password 
   }
 // Limpeza de Handles e DesconexÃ£o
 cleanup:
-    cout << "\nEncerrando a conexÃ£o e liberando recursos..." << endl;
+    DBINTERFACE_MSG("Closing connection and free resources...");
     if (stmt != SQL_NULL_HSTMT) _SQLFreeHandle(SQL_HANDLE_STMT, stmt);
     if (dbc != SQL_NULL_HDBC) {
         _SQLDisconnect(dbc); 
@@ -303,7 +339,9 @@ cleanup:
 int db_disconnect() 
 {
   if (!load_odbc_symbols()) {
-    std::cerr << "[DBINTERFACE] Não é possível conectar, falha ao carregar a biblioteca ODBC.\n";
+    std::string err = "Fail to connect and load ODBC library."; 
+    err.append(dlerror()); 
+    DBINTERFACE_ERR(err.c_str());
     return 1;
   } 
   return 0;

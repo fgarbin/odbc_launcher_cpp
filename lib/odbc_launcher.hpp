@@ -1,6 +1,8 @@
 #ifndef ODBC_LAUNCHER
 #define ODBC_LAUNCHER
 
+#define EXPORT __attribute__((visibility("default")))
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -11,11 +13,8 @@ extern "C" {
  * @param password Senha para conexão com o SQL Server.
  * @return 0 em caso de sucesso, código de erro em caso de falha.
  */
-#ifdef USE_DBSRV
-int connect_and_run_sql(const char * pServer, const char * pDSN, const char * pUser);
-#else
-int connect_and_run_sql(const char * pDSN, const char * pUser, const char * pPwd);
-#endif
+EXPORT int connect_and_run_sql(const char * pDSN, const char * pUser, const char * pPwd);
+
 #ifdef __cplusplus
 }
 #endif

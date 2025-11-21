@@ -1,14 +1,8 @@
 #!/bin/bash
 
 # 1. Verifica se a variável NÃO está vazia/indefinida (-n)  
-if [[ -n "$USE_DBSRV" ]] && [[ "$USE_DBSRV" == "1" ]]; then
-    unset WITH_DBINTERFACE  
-    PARM_DBSRV=-DUSE_DBSRV
-    echo "*** Building using DBSRV"
-else
-    export WITH_DBINTERFACE=1
-    echo "*** Building using DBINTERFACE"
-fi
+export WITH_DBINTERFACE=1
+echo "*** Building using DBINTERFACE"
 
 # 1. Verifica se a variável NÃO está vazia/indefinida (-n)
 if [[ -n "$USE_OPENSSL" ]]; then    
@@ -31,7 +25,8 @@ if [[ -n "$USE_OPENSSL" ]]; then
       echo "*** Using OPENSSL_INC:  ${OPENSSL_INC}"
       echo "*** Using OPENSSL_LIB:  ${OPENSSL_LIB}"
     else
-      echo "*** Error: OPENSSL_ROOT must be defined."
+      echo "*** Error: OPENSSL_ROOT environment variable must be defined."
+      exit $?
     fi   
 else
     echo "*** Building without OpenSSL."
@@ -44,18 +39,18 @@ cd lib
 echo "*** Build libodbc_launcher.so ..."
 
 if [[ -n "$USE_OPENSSL" ]]; then    
-    g++ -std=c++17 ${PARM_DBSRV} -DUSE_OPENSSL=${USE_OPENSSL} -fPIC -shared odbc_launcher.cpp -o libodbc_launcher.so \
+    g++ -g -std=c++17 ${PARM_DBSRV} -DUSE_OPENSSL=${USE_OPENSSL} -fPIC -shared odbc_launcher.cpp -o libodbc_launcher.so \
         -I${PWD} \
         -I${OPENSSL_INC} \
         -L${OPENSSL_LIB} \
         -L${PWD} \
         -lssl -lcrypto \
-        -ldl -lrt -lpthread 
+        -ldl -lrt -lpthread -lstdc++ 
 else
-    g++ -std=c++17 ${PARM_DBSRV} -fPIC -shared odbc_launcher.cpp -o libodbc_launcher.so \
+    g++ -g -std=c++17 ${PARM_DBSRV} -fPIC -shared odbc_launcher.cpp -o libodbc_launcher.so \
         -I${PWD} \
         -L${PWD} \
-        -ldl -lrt -lpthread 
+        -ldl -lrt -lpthread -lstdc++ 
 fi
 echo "*** Exiting directory lib..."
 cd ..
@@ -69,10 +64,10 @@ if [[ -n "$WITH_DBINTERFACE" ]]; then
     cd lib_dbinterface
 
     echo "*** Build lib_dbinterface.so ..."
-    g++ -std=c++17 -fPIC -shared dbinterface.cpp -o libdbinterface.so \
+    g++ -g  -std=c++17 -fPIC -shared dbinterface.cpp -o libdbinterface.so \
         -I${PWD} \
         -L${PWD} \
-        -ldl -lrt -lpthread 
+        -ldl -lrt -lpthread -lstdc++ 
 
     echo "*** Exiting directory lib_dbinterface..."
     cd ..
@@ -82,7 +77,7 @@ if [[ -n "$WITH_DBINTERFACE" ]]; then
 fi
 
 echo "*** Building app_odbc_launcher... "
-g++ -std=c++17 ${PARM_DBSRV} app/main.cpp -o app_odbc_launcher \
+g++ -g -std=c++17 ${PARM_DBSRV} app/main.cpp -o app_odbc_launcher \
     -I${PWD}/lib \
     -L${PWD}/lib \
     -lodbc_launcher

@@ -39,11 +39,6 @@ export OPENSSL_ROOT="/home/user/openssl/3.0.13/linux64/gcc-8.3.1"
 unset USE_OPENSSL
 ```
 
-### Using Load DBSrv (external component for database interface)
-```
-export USE_DBSRV=1
-```
-
 ### Build command
 ```
 chmod +x compile.sh 

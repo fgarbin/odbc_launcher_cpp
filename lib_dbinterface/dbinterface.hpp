@@ -8,6 +8,8 @@
 #include <sqlext.h>
 
 
+#define DBINTERFACE_MSG(x)   printf("[INFO ] %s\n", x)
+#define DBINTERFACE_ERR(x)   printf("[ERROR] %s\n", x)
 
 // Bloco extern "C" é crucial para garantir a compatibilidade com dlsym
 #ifdef __cplusplus
