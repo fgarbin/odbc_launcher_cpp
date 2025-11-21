@@ -17,24 +17,9 @@ using namespace std;
 #define _EXTERN_
 #define T_MAYBE_UNUSED_17 [[maybe_unused]]
 
-#ifdef USE_DBSRV
-#define TC_m4GLConnect v40TC_m4GLConnect
-
-#define fnTC_GetTopConn             "v40TC_GetTopConn"
-#define fnTC_m4GLConnect            "v40TC_m4GLConnect" 
-#define fnTC_DisConnect             "v40TC_DisConnect" 
-
-_EXTERN_ void*    (_DLLCALL_ *TC_GetTopConn4gl) ( short Type, short prefPort ); // 2=TCPIP 3=NPIPE
-_EXTERN_ short   (_DLLCALL_ *TC_m4GLConnect) ( void* who, char* toServer, char* conn_str, char* usrname );
-_EXTERN_ short   (_DLLCALL_ *TC_DisConnect4gl) ( void* who );
-
-#else
-
 // Definicao do tipo de ponteiro da funcao que serah carregada dinamicamente
 typedef int (* db_connect_ptr)(const char *DSN_NAME, const char *username, const char *password);
 typedef int (* db_disconnect_ptr)();
-
-#endif
 
 /**
  * @brief Inicializa a OpenSSL 3 estaticamente.
@@ -43,7 +28,7 @@ typedef int (* db_disconnect_ptr)();
 bool initialize_openssl() 
 {
 #ifdef USE_OPENSSL  
-    cout << "--- Inicializando OpenSSL (static) ---" << endl;
+    cout << "--- Initing OpenSSL (static) ---" << endl;
  
     #if USE_OPENSSL == 1
         // ROTINA DE INICIALIZAÃ‡ÃƒO CLÃ�SSICA (1.1.1 e anteriores)
@@ -52,28 +37,26 @@ bool initialize_openssl()
         SSL_library_init();
         SSL_load_error_strings();
         OpenSSL_add_all_algorithms();
-        cout << "OpenSSL 1.1.1t inicializada com sucesso." << endl;
+        cout << "OpenSSL 1.1.1t initialized successsfuly." << endl;
     #else    
         // OpenSSL 3.0 simplificou a inicializaÃ§Ã£o
         if (SSL_library_init() != 1) { // JÃ¡ obsoleto, mas funciona para OpenSSL 1.x
-            cerr << "Erro: SSL_library_init falhou." << endl;
+            cerr << "ERROR: SSL_library_init failed." << endl;
             return false;
         }
         // Load algorithms and error strings
         OpenSSL_add_all_algorithms();
         SSL_load_error_strings();
-        cout << "OpenSSL 3.0 inicializada com sucesso." << endl;
+        cout << "OpenSSL 3.0 initialized successsfuly." << endl;
     #endif 
 #else
-  cout << "Versão sem OpenSSL." << endl; 
+  cout << "Version not using OpenSSL." << endl; 
 #endif
     cout << "----------------------------------------" << endl;
     return true;
 }
 
-// DBSRV
-#ifdef USE_DBSRV
-int connect_and_run_sql(const char * pServer, const char * pDSN, const char * pUser)
+EXPORT int connect_and_run_sql(const char * pDSN, const char * pUser, const char * pPwd)
 {
   void* dbinterface_handle = nullptr;
   const char* dlsym_error = nullptr;
@@ -83,75 +66,7 @@ int connect_and_run_sql(const char * pServer, const char * pDSN, const char * pU
     return 1;
   }  
 
-  cout << "--- Carregando biblioteca dinamica (dbsrv.so) ---" << endl;
-  dbinterface_handle = dlopen( "./dbsrv.so", RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND );
-
-  if (!initialize_openssl()) 
-  {
-    return 1;
-  }  
-  
-  if( dbinterface_handle == NULL )
-  {
-    std::cout << "Could not load library: " << dlerror() << std::endl;
-    return -1;
-  }
-
-  TC_GetTopConn4gl = (void* (_DLLCALL_ *) (short,short))
-    dlsym( dbinterface_handle, fnTC_GetTopConn );
-
-  TC_m4GLConnect = (short  (_DLLCALL_ *) ( void* who, char* toServer, char* conn_str, char* usrname ))
-  dlsym( dbinterface_handle, fnTC_m4GLConnect );
-
-  TC_DisConnect4gl = (short  (_DLLCALL_ *) ( void* who ))
-  dlsym( dbinterface_handle, fnTC_DisConnect );
-
-
-  std::string sDSN = pDSN;
-  std::string sUsername = pUser;
-  std::string sServer   = pServer;
-
-  
-  std::string sDbEnvConn = "@!!@";
-  sDbEnvConn.append("MSSQL/");
-  sDbEnvConn.append(sDSN.c_str());
-  
-  dlerror();
-  
-  void* TOPAux = TC_GetTopConn4gl( 2, 7890);
-
-  int ret= TC_m4GLConnect ( TOPAux, (char*)sServer.c_str(), (char*)sDbEnvConn.c_str(), (char*)sUsername.c_str() );
-  
-  if (ret == 0)
-  {
-    std::cout << "Disconnecting...." << std::endl;
-    ret = TC_DisConnect4gl(TOPAux);
-  }
-  else
-  {
-    std::cout << "Connect Fail...." << std::endl;
-    return 1;
-  }
-  
-  
-  dlclose( dbinterface_handle );
-
-  return 0;
-}
-
-#else
-
-int connect_and_run_sql(const char * pDSN, const char * pUser, const char * pPwd)
-{
-  void* dbinterface_handle = nullptr;
-  const char* dlsym_error = nullptr;
-
-  if (!initialize_openssl()) 
-  {
-    return 1;
-  }  
-
-  cout << "--- Carregando biblioteca dinamica (dbinterface.so) ---" << endl;
+  cout << "--- Loading dynamic library (dbinterface.so) ---" << endl;
   dbinterface_handle = dlopen("./libdbinterface.so", RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND );
   if( dbinterface_handle == nullptr )
   {
@@ -163,35 +78,35 @@ int connect_and_run_sql(const char * pDSN, const char * pUser, const char * pPwd
   db_connect_ptr db_connect_fn = (db_connect_ptr)dlsym(dbinterface_handle, "db_connect");
   dlsym_error = dlerror();
   if (dlsym_error) {
-      cerr << "ERRO FATAL: Nao foi possivel encontrar a funcao db_connect: " << dlsym_error << endl;
+      cerr << "FATAL ERROR: Fail to map db_connect function: " << dlsym_error << endl;
       dlclose(dbinterface_handle);
       return 1;
   }
-  cout << "Funcao 'db_connect' mapeada com sucesso." << endl;
+  cout << "Function 'db_connect' mapped successfully." << endl;
 
   db_disconnect_ptr db_disconnect_fn = (db_disconnect_ptr)dlsym(dbinterface_handle, "db_disconnect");
   dlsym_error = dlerror();
   if (dlsym_error) {
-      cerr << "ERRO FATAL: Nao foi possivel encontrar a funcao db_disconnect: " << dlsym_error << endl;
+      cerr << "FATAL ERROR: Fail to map db_connect function db_disconnect: " << dlsym_error << endl;
       dlclose(dbinterface_handle);
       return 1;
   }
-  cout << "Funcao 'db_disconnect' mapeada com sucesso." << endl;
+  cout << "Function 'db_disconnect' mapped successfully." << endl;
 
   // iniciando operacoes no banco
-  cout << "\n--- Iniciando o Modulo ODBC/SQL Server ---" << endl;
+  cout << "\n--- Initializing ODBC/SQL Server Module---" << endl;
   int result = db_connect_fn(pDSN, pUser, pPwd);
 
   // Limpeza
-  cout << "\n--- Limpando recursos ---" << endl;
+  cout << "\n--- Free resources ---" << endl;
   dlclose(dbinterface_handle);
 
   if (result == 0) {
-      cout << "SUCESSO: Rotina completa executada sem falhas." << endl;
+    cout << "Sucess: Program ODBC_LAUNCHER execution successfully." << endl;
   } else {
-      cerr << "FALHA: A rotina SQL retornou codigo de erro: " << result << endl;
+    cerr << "Fail: Program ODBC_LAUNCHER return error code: " << result << endl;
   }  
 
   return 0;
 }
-#endif
+

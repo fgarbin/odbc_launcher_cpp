@@ -14,11 +14,7 @@ int main( int argc, char **argv )
   if( argc < 4 )
   {
     std::cout << "Invalid number of parameters." << std::endl;
-#ifdef USE_DBSRV    
-    std::cout << "Parameters: SERVER DSN USERNAME" << std::endl;
-#else
     std::cout << "Parameters: DSN USERNAME PASSWORD" << std::endl;
-#endif
     exit( 1 );
   }
   
@@ -35,14 +31,14 @@ int main( int argc, char **argv )
     return 1;
   }
 
-  cout << "--- Carregando o app_odbc_launcher dinamicamente --- " << endl; 
-  // Chama direto a funcao da lib linkada dinamicamente
-  int result = connect_and_run_sql(sParm1.c_str(), sParm2.c_str(), sParm3.c_str());
+  cout << "--- Loading app_odbc_launcher dynamically --- " << endl; 
+  int result = 0;
+  result = connect_and_run_sql(sParm1.c_str(), sParm2.c_str(), sParm3.c_str());
 
   if (result == 0) {
-      cout << "SUCESSO: Rotina completa executada sem falhas." << endl;
+      cout << "Sucess: Program MAIN execution successfully." << endl;
   } else {
-      cerr << "FALHA: A rotina SQL retornou codigo de erro: " << result << endl;
+      cerr << "Fail: Program MAIN return error code: " << result << endl;
   }
 
   return result;
