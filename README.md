@@ -17,8 +17,13 @@ The project focuses on leveraging the Microsoft ODBC Driver 18 (msodbcsql18) and
 ```
 
 ---
-
 ## Build
+
+### Packages
+
+To build this POC this packages must be installed on system:
+
+- unixODBC-devel
 
 ### Environment variables
 
